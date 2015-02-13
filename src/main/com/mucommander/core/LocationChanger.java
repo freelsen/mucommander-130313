@@ -48,6 +48,7 @@ import com.mucommander.ui.dialog.auth.AuthDialog;
 import com.mucommander.ui.dialog.file.DownloadDialog;
 import com.mucommander.ui.event.LocationManager;
 import com.mucommander.ui.main.FolderPanel;
+import com.mucommander.ui.main.LsFindTable;
 import com.mucommander.ui.main.MainFrame;
 import com.mucommander.utils.Callback;
 
@@ -210,7 +211,15 @@ public class LocationChanger {
 	 */
 	public ChangeFolderThread tryChangeCurrentFolder(String folderPath) {
 		try {
-			return tryChangeCurrentFolder(FileURL.getFileURL(folderPath), null, false);
+			/*//<ls
+			if(LsFindTable.lsfind.findstate==1)
+			{
+				System.out.println("trychangecurrentfolder,null,null,false");
+				return tryChangeCurrentFolder(null, null, false);
+			}
+			else
+			//ls>*/
+				return tryChangeCurrentFolder(FileURL.getFileURL(folderPath), null, false);
 		}
 		catch(MalformedURLException e) {
 			// FileURL could not be resolved, notify the user that the folder doesn't exist
@@ -606,10 +615,47 @@ public class LocationChanger {
 		@Override
 		public void run() {
 			LOGGER.debug("starting folder change...");
-			boolean folderChangedSuccessfully = false;
+			boolean folderChangedSuccessfully = false;			
 
 			// Show some progress in the progress bar to give hope
 			folderPanel.setProgressValue(10);
+
+			/*//<ls
+			if(LsFindTable.lsfind != null)
+				if(LsFindTable.lsfind.findstate == 1)
+				{
+					System.out.println("locationChanger.run;");
+					try
+					{
+						// Change the file table's current folder and select the specified file (if any)
+						setCurrentFolder(folder, fileToSelect, changeLockedTab);
+			
+						// folder set -> 95% complete
+						folderPanel.setProgressValue(95);
+			
+						// If new credentials were entered by the user, these can now be considered valid
+						// (folder was changed successfully), so we add them to the CredentialsManager.
+						// Do not add the credentials if guest credentials were selected by the user.
+						//if(newCredentialsMapping!=null && !guestCredentialsSelected)
+						//	CredentialsManager.addCredentials(newCredentialsMapping);
+			
+						// All good !
+						folderChangedSuccessfully = true;
+					}
+					catch(Exception e)
+					{
+						
+					}
+					
+					synchronized(KILL_LOCK) {
+						// Clean things up
+						cleanup(folderChangedSuccessfully);
+					}
+					
+					LsFindTable.lsfind.findstate = 0;
+					return;
+				}
+			//ls>*/
 
 			boolean userCancelled = false;
 			CredentialsMapping newCredentialsMapping = null;
@@ -896,7 +942,7 @@ public class LocationChanger {
 				}
 				while(true);
 			}
-
+			
 			synchronized(KILL_LOCK) {
 				// Clean things up
 				cleanup(folderChangedSuccessfully);

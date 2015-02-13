@@ -105,6 +105,11 @@ public class MainFrame extends JFrame implements LocationListener {
 
     /** Contains all registered ActivePanelListener instances, stored as weak references */
     private WeakHashMap<ActivePanelListener, ?> activePanelListeners = new WeakHashMap<ActivePanelListener, Object>();
+    
+    // <ls+2013-03-17;
+    public LsFindTable lsfind = null;
+    // ls+; 2013-10-20;-1127;
+    //public LsFindTableRelative lsfindrel = null;
 
     /**
      * Sets the window icon, using the best method (Java 1.6's Window#setIconImages when available, Window#setIconImage
@@ -151,6 +156,21 @@ public class MainFrame extends JFrame implements LocationListener {
     }
 
     private void init(FolderPanel leftFolderPanel, FolderPanel rightFolderPanel) {
+    	
+    	// <ls
+    	lsfind = new LsFindTable();
+    	LsFindTable.lsfind = lsfind;
+    	lsfind.mfrm = this;
+    	lsfind.init();
+    	
+    	// 2013-10-20; 1127;
+//    	lsfindrel = new LsFindTableRelative();
+//    	LsFindTableRelative.lsfind = lsfindrel;
+//    	lsfindrel.mfrm = this;
+//    	lsfindrel.init();
+    	// ls>
+    	
+    	
         // Set the window icon
         setWindowIcon();
 
@@ -251,6 +271,16 @@ public class MainFrame extends JFrame implements LocationListener {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+            	if(lsfind != null)
+            	{
+            		lsfind.Close();
+            	}
+            	// 2013-10-20;
+//            	if(lsfindrel != null)
+//            	{
+//            		lsfindrel.Close();
+//            	}
+            	
                 ActionManager.performAction(CloseWindowAction.Descriptor.ACTION_ID, MainFrame.this);
             }
         });

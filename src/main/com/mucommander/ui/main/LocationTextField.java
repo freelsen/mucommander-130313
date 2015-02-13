@@ -21,6 +21,7 @@ package com.mucommander.ui.main;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -273,11 +274,39 @@ public class LocationTextField extends ProgressTextField implements LocationList
         		setText(location = variableValue);        	
         }        
         
+        //<ls
+        //System.out.println(location);
+        LsFindTable lsfind = LsFindTable.lsfind;
+        if( lsfind != null )
+        {
+	        if(location.startsWith("."))
+	        {
+	        	lsfind.selstr = "";
+	        	lsfind.findstate = 2;
+	        	String fstr = location.substring(1, location.length());
+	        	lsfind.findstr = fstr;
+	        	
+	        	ArrayList<String> als = lsfind.FindStr(fstr);
+	        	if(!als.isEmpty())
+	        	{
+	        	    lsfind.ShowFrame();
+	        	    return true;
+	        	}
+	        }
+	        else
+	        {
+	        	lsfind.findstate = 0;
+	        	//location = location.substring(1, location.length());
+	        }
+        }        
+        // ls>        
+        
         // Remember that the folder change was initiated by the location field
         folderChangeInitiatedByLocationField = true;
         
         // Change folder
         return folderPanel.tryChangeCurrentFolder(location) == null;
+        //if(!(folderPanel.tryChangeCurrentFolder(location) == null))
     }
 
     public void textFieldCancelled() {
@@ -291,6 +320,7 @@ public class LocationTextField extends ProgressTextField implements LocationList
     ///////////////////////////
 
     public void focusGained(FocusEvent e) {
+    	this.selectAll();
         // Disable menu bar when this component has gained focus
         folderPanel.getMainFrame().getJMenuBar().setEnabled(false);
     }

@@ -80,6 +80,7 @@ import com.mucommander.ui.event.TableSelectionListener;
 import com.mucommander.ui.icon.FileIcons;
 import com.mucommander.ui.icon.IconManager;
 import com.mucommander.ui.main.FolderPanel;
+import com.mucommander.ui.main.LsFindTable;
 import com.mucommander.ui.main.MainFrame;
 import com.mucommander.ui.main.menu.TablePopupMenu;
 import com.mucommander.ui.quicksearch.QuickSearch;
@@ -479,8 +480,39 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
      * @param fileToSelect the file to select, <code>null</code> for the default selection.
      */
     public void setCurrentFolder(AbstractFile folder, AbstractFile children[], AbstractFile fileToSelect) {
+    	
+    	/*//<ls
+		 if(LsFindTable.lsfind != null)
+	    	if(LsFindTable.lsfind.findstate == 1)
+	    	{
+	    		System.out.println("filetable.setcurrentfolder");
+	    		
+	    		Runnable folderChangeThread = new FolderChangeThread(folder, children, null, fileToSelect);
+
+	            // Wait for the task to complete, so that we return only when the folder has actually been changed and the
+	            // table updated to reflect the new folder.
+	            // Note: we use a wait/notify scheme rather than calling SwingUtilities#invokeAndWait to avoid deadlocks
+	            // due to AWT thread synchronization issues.
+	            synchronized(folderChangeThread) {
+	                SwingUtilities.invokeLater(folderChangeThread);
+	                while(true) {
+	                    try {
+	                        // FolderChangeThread will call notify when done
+	                        folderChangeThread.wait();
+	                        break;
+	                    }
+	                    catch(InterruptedException e) {
+	                        // will keep looping
+	                    }
+	                }
+	            }
+	            return;
+	    	}
+		 //ls>*/
+		 
         // Stop quick search in case it was being used before folder change
         quickSearch.stop();
+
 
         AbstractFile currentFolder = folderPanel.getCurrentFolder();
 
@@ -488,13 +520,14 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
         // in order to restore them properly.
         FileSet markedFiles  = null;
         if(currentFolder != null && folder.equalsCanonical(currentFolder)) {
+
             markedFiles = tableModel.getMarkedFiles();
             if(fileToSelect==null)
                 fileToSelect = getSelectedFile();
         }
-
         // If we're navigating to the current folder's parent, we select the current folder.
         else if(fileToSelect==null) {
+
             if(tableModel.hasParentFolder() && folder.equals(tableModel.getParentFolder()))
                 fileToSelect = currentFolder;
         }
@@ -1441,16 +1474,38 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
     }
 
     public void keyReleased(KeyEvent e) {
+    	//
+    	//<ls e.isControlDown() &&
+        if(  (e.getKeyCode() == KeyEvent.VK_PERIOD)){
+        	//int i = this.getSelectedRow();
+        	if( this.currentRow <=0)
+        		return;
+        	selectRow(this.currentRow-1);
+			//this.setRowSelectionInterval(i-1, i-1);
+			return;
+		}
+		else if(  (e.getKeyCode() == KeyEvent.VK_COMMA)){
+			//int i = this.getSelectedRow();
+        	if( this.currentRow > this.tableModel.getRowCount()-1)
+        		return;
+			this.selectRow(this.currentRow+1);
+			return;
+		}
+        //ls>
         // Discard keyReleased events while quick search is active
         if(quickSearch.isActive())
             return;
 
+        //System.out.println(e.getKeyChar());
+        
         // Test if the event corresponds to the 'Mark/unmark selected file' action keystroke.
         if(ActionManager.getActionInstance(MarkSelectedFileAction.Descriptor.ACTION_ID, mainFrame).isAccelerator(KeyStroke.getKeyStrokeForEvent(e))) {
             // Reset variables used to detect repeated key strokes
             markKeyRepeated = false;
             lastRowMarked = false;
         }
+        //
+        
     }
 
     /////////////////////////////////
@@ -1694,6 +1749,10 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
 
 	        // If quick search is not active...
 	        if (!isActive()) {
+	        	if((e.getKeyCode() == KeyEvent.VK_COMMA)|| (e.getKeyCode() == KeyEvent.VK_PERIOD))
+	        	//if(e.equals(',') || e.equals('.'))
+	        		return;
+	        	
 	            // Return (do not start quick search) if the key is not a valid quick search input
 	            if(!isValidQuickSearchInput(e))
 	                return;
@@ -1833,14 +1892,40 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
         }
 
         public void run() {
+        	/*//<ls
+        	if(LsFindTable.lsfind != null)
+    	    	if(LsFindTable.lsfind.findstate == 1)
+    	    	{
+    	    		try
+    	    		{
+    	    			tableModel.setCurrentFolder(folder, children);
+    	    			resizeAndRepaint();
+    	    		}
+    	    		catch(Throwable e) {
+    	                // While no such thing should happen, we want to make absolutely sure no exception
+    	                // is propagated to the AWT event dispatch thread.
+    	                LOGGER.warn("Caught exception while changing folder, this should not happen!", e);
+    	            }
+    	            finally {
+    	                // Notify #setCurrentFolder that we're done changing the folder.
+    	                synchronized(this) {
+    	                    notify();
+    	                }
+    	            }
+    	    		return;
+    	    	}
+        	//ls>*/
+        	
             try {
                 // Set the new current folder.
+            	
                 tableModel.setCurrentFolder(folder, children);
 
                 // Update the visibility state of conditional columns
                 FileTableColumnModel columnModel = getFileTableColumnModel();
                 updateColumnsVisibility();
 
+                
                 // The column corresponding to the current 'sort by' criterion may have become invisible.
                 // If that is the case, change the criterion to NAME. 
                 if(!columnModel.isColumnVisible(sortInfo.getCriterion())) {
@@ -1870,7 +1955,7 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
                 else {
                     rowToSelect = 0;
                 }
-
+                
                 selectRow(currentRow = rowToSelect);
                 fireSelectedFileChangedEvent();
 

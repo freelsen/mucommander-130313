@@ -31,6 +31,7 @@ import com.mucommander.core.FolderChangeMonitor;
 import com.mucommander.core.GlobalLocationHistory;
 import com.mucommander.ui.main.ConfigurableFolderFilter;
 import com.mucommander.ui.main.FolderPanel;
+import com.mucommander.ui.main.LsFindTable;
 
 /**
  * @author Maxence Bernard
@@ -74,6 +75,22 @@ public class LocationManager {
      */
     public void setCurrentFolder(AbstractFile folder, AbstractFile fileToSelect, boolean changeLockedTab) throws UnsupportedFileOperationException, IOException {
     	LOGGER.trace("calling ls()");
+    	
+    	/*//<ls
+    	if(LsFindTable.lsfind != null)
+	    	if(LsFindTable.lsfind.findstate == 1)
+	    	{
+	    		System.out.println("LocationManager.setcurrentfolder;");
+	    		folderPanel.setCurrentFolder(folder, null, fileToSelect, changeLockedTab);
+	    		
+	    		// After the initial folder is set, initialize the monitoring thread
+	        	if (folderChangeMonitor == null)
+	        		folderChangeMonitor = new FolderChangeMonitor(folderPanel);
+	        	
+	    		return;
+	    	}
+    	//ls>*/
+    	
     	AbstractFile[] children = folder.ls(configurableFolderFilter);
 
     	folderPanel.setCurrentFolder(folder, children, fileToSelect, changeLockedTab);
