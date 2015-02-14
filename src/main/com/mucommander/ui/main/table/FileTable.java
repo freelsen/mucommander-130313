@@ -481,35 +481,6 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
      */
     public void setCurrentFolder(AbstractFile folder, AbstractFile children[], AbstractFile fileToSelect) {
     	
-    	/*//<ls
-		 if(LsFindTable.lsfind != null)
-	    	if(LsFindTable.lsfind.findstate == 1)
-	    	{
-	    		System.out.println("filetable.setcurrentfolder");
-	    		
-	    		Runnable folderChangeThread = new FolderChangeThread(folder, children, null, fileToSelect);
-
-	            // Wait for the task to complete, so that we return only when the folder has actually been changed and the
-	            // table updated to reflect the new folder.
-	            // Note: we use a wait/notify scheme rather than calling SwingUtilities#invokeAndWait to avoid deadlocks
-	            // due to AWT thread synchronization issues.
-	            synchronized(folderChangeThread) {
-	                SwingUtilities.invokeLater(folderChangeThread);
-	                while(true) {
-	                    try {
-	                        // FolderChangeThread will call notify when done
-	                        folderChangeThread.wait();
-	                        break;
-	                    }
-	                    catch(InterruptedException e) {
-	                        // will keep looping
-	                    }
-	                }
-	            }
-	            return;
-	    	}
-		 //ls>*/
-		 
         // Stop quick search in case it was being used before folder change
         quickSearch.stop();
 
@@ -1474,7 +1445,6 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
     }
 
     public void keyReleased(KeyEvent e) {
-    	//
     	//<ls e.isControlDown() &&
         if(  (e.getKeyCode() == KeyEvent.VK_PERIOD)){
         	//int i = this.getSelectedRow();
@@ -1892,30 +1862,6 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
         }
 
         public void run() {
-        	/*//<ls
-        	if(LsFindTable.lsfind != null)
-    	    	if(LsFindTable.lsfind.findstate == 1)
-    	    	{
-    	    		try
-    	    		{
-    	    			tableModel.setCurrentFolder(folder, children);
-    	    			resizeAndRepaint();
-    	    		}
-    	    		catch(Throwable e) {
-    	                // While no such thing should happen, we want to make absolutely sure no exception
-    	                // is propagated to the AWT event dispatch thread.
-    	                LOGGER.warn("Caught exception while changing folder, this should not happen!", e);
-    	            }
-    	            finally {
-    	                // Notify #setCurrentFolder that we're done changing the folder.
-    	                synchronized(this) {
-    	                    notify();
-    	                }
-    	            }
-    	    		return;
-    	    	}
-        	//ls>*/
-        	
             try {
                 // Set the new current folder.
             	

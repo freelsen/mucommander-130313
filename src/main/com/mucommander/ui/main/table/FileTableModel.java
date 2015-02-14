@@ -245,18 +245,6 @@ public class FileTableModel extends AbstractTableModel {
     }
     synchronized void setCurrentFolder(AbstractFile folder, AbstractFile children[]) {
     	
-    	/*//<ls;
-    	if( LsFindTable.lsfind !=null )
-    	{
-    		
-    		if(LsFindTable.lsfind.findstate == 1)
-    		{
-    			System.out.println("filetableModel.setcurrentfolder;");
-    			lsSetCurrentFolder(folder, children);
-    			return;
-    		}
-    	}
-    	//ls>*/
         int nbFiles = children.length;
 
         this.currentFolder = (folder instanceof CachedFile)?folder:new CachedFile(folder, true);
@@ -387,26 +375,6 @@ public class FileTableModel extends AbstractTableModel {
 	            fileIndex++;
 	        }
         }
-        /*
-        try
-        {
-        //<ls
-        	FileWriter fw = new FileWriter("f_ls.txt");
-        
-        	file = getCachedFileAtRow(len-1);
-        	fw.write(file.getName());
-        	fw.close();        
-        }
-        catch( IOException ioe)
-        {
-        	
-        }
-*/
-        // <ls-2013-03-16;
-        //int cellIndex = fileArrayIndex[--fileIndex]+(parent==null?0:1);
-        //cellValuesCache[cellIndex][Column.NAME.ordinal()-1] = "ls";
-        
-        // ls>
     }
 	
 	
@@ -933,13 +901,15 @@ public class FileTableModel extends AbstractTableModel {
         // Name column can temporarily be made editable by FileTable
         // but parent file '..' name should never be editable
     	
+	//<ls	
     	if( this.isProw(rowIndex))
     		return false;
     	if( this.isCrow(rowIndex))
     		return false;
-    	
-         //if(Column.valueOf(columnIndex)==Column.NAME && (parent==null || rowIndex!=0))
+        
+       	//if(Column.valueOf(columnIndex)==Column.NAME && (parent==null || rowIndex!=0))
     	if(Column.valueOf(columnIndex)==Column.NAME )
+	//ls>
             return nameColumnEditable;
 	
         return false;
