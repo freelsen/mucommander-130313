@@ -108,8 +108,7 @@ public class MainFrame extends JFrame implements LocationListener {
     
     // <ls+2013-03-17;
     public LsFindTable lsfind = null;
-    // ls+; 2013-10-20;-1127;
-    //public LsFindTableRelative lsfindrel = null;
+    // ls>
 
     /**
      * Sets the window icon, using the best method (Java 1.6's Window#setIconImages when available, Window#setIconImage
@@ -162,12 +161,6 @@ public class MainFrame extends JFrame implements LocationListener {
     	LsFindTable.lsfind = lsfind;
     	lsfind.mfrm = this;
     	lsfind.init();
-    	
-    	// 2013-10-20; 1127;
-//    	lsfindrel = new LsFindTableRelative();
-//    	LsFindTableRelative.lsfind = lsfindrel;
-//    	lsfindrel.mfrm = this;
-//    	lsfindrel.init();
     	// ls>
     	
     	
@@ -271,15 +264,12 @@ public class MainFrame extends JFrame implements LocationListener {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+		// <ls
             	if(lsfind != null)
             	{
             		lsfind.Close();
             	}
-            	// 2013-10-20;
-//            	if(lsfindrel != null)
-//            	{
-//            		lsfindrel.Close();
-//            	}
+		// ls>
             	
                 ActionManager.performAction(CloseWindowAction.Descriptor.ACTION_ID, MainFrame.this);
             }
