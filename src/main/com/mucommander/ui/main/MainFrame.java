@@ -107,7 +107,7 @@ public class MainFrame extends JFrame implements LocationListener {
     private WeakHashMap<ActivePanelListener, ?> activePanelListeners = new WeakHashMap<ActivePanelListener, Object>();
     
     // <ls+2013-03-17;
-    public LsFindTable lsfind = null;
+    public LsFastFoder mfastfoder = new LsFastFoder();
     // ls>
 
     /**
@@ -157,13 +157,10 @@ public class MainFrame extends JFrame implements LocationListener {
     private void init(FolderPanel leftFolderPanel, FolderPanel rightFolderPanel) {
     	
     	// <ls
-    	lsfind = new LsFindTable();
-    	LsFindTable.lsfind = lsfind;
-    	lsfind.mfrm = this;
-    	lsfind.init();
+    	mfastfoder.mainframe = this;
+    	mfastfoder.init();
     	// ls>
-    	
-    	
+    		
         // Set the window icon
         setWindowIcon();
 
@@ -265,9 +262,9 @@ public class MainFrame extends JFrame implements LocationListener {
             @Override
             public void windowClosing(WindowEvent e) {
 		// <ls
-            	if(lsfind != null)
+            	if(mfastfoder != null)
             	{
-            		lsfind.Close();
+            		mfastfoder.Close();
             	}
 		// ls>
             	

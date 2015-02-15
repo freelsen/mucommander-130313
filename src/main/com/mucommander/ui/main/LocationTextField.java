@@ -158,6 +158,11 @@ public class LocationTextField extends ProgressTextField implements LocationList
 
         // Reset field for next folder change
         folderChangeInitiatedByLocationField = false;
+
+	//<ls
+	if(LsFastFoder.mthis != null)
+		LsFastFoder.mthis.AddPath(folderPanel.getCurrentFolder().getAbsolutePath());
+	//ls>
     }
 
 
@@ -275,30 +280,9 @@ public class LocationTextField extends ProgressTextField implements LocationList
         }        
         
         //<ls
-        //System.out.println(location);
-        LsFindTable lsfind = LsFindTable.lsfind;
-        if( lsfind != null )
-        {
-	        if(location.startsWith("."))
-	        {
-	        	lsfind.selstr = "";
-	        	lsfind.findstate = 2;
-	        	String fstr = location.substring(1, location.length());
-	        	lsfind.findstr = fstr;
-	        	
-	        	ArrayList<String> als = lsfind.FindStr(fstr);
-	        	if(!als.isEmpty())
-	        	{
-	        	    lsfind.ShowFrame();
-	        	    return true;
-	        	}
-	        }
-	        else
-	        {
-	        	lsfind.findstate = 0;
-	        	//location = location.substring(1, location.length());
-	        }
-        }        
+        if(LsFastFoder.mthis != null)
+        	if(LsFastFoder.mthis.onTextField(location))
+        		return true;
         // ls>        
         
         // Remember that the folder change was initiated by the location field

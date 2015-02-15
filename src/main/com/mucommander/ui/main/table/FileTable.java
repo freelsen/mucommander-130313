@@ -80,7 +80,6 @@ import com.mucommander.ui.event.TableSelectionListener;
 import com.mucommander.ui.icon.FileIcons;
 import com.mucommander.ui.icon.IconManager;
 import com.mucommander.ui.main.FolderPanel;
-import com.mucommander.ui.main.LsFindTable;
 import com.mucommander.ui.main.MainFrame;
 import com.mucommander.ui.main.menu.TablePopupMenu;
 import com.mucommander.ui.quicksearch.QuickSearch;
@@ -182,6 +181,30 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
     /** Wrapper of presentation adjustments for the file-table */
     private FileTableWrapperForDisplay scrollpaneWrapper;
 
+    //<ls;
+    class LsProc
+    {
+    	public boolean onKeyReleased(KeyEvent e)
+    	{
+    		if(  (e.getKeyCode() == KeyEvent.VK_PERIOD)){
+    			if( currentRow > 0)
+    				selectRow(currentRow-1);
+    			else
+    				selectRow(tableModel.getRowCount()-1);
+    			return true;
+    		}
+    		else if(  (e.getKeyCode() == KeyEvent.VK_COMMA)){
+    			if( currentRow < tableModel.getRowCount()-1)
+    				selectRow(currentRow+1);
+    			else
+    				selectRow(0);
+    			return true;
+    		}
+    		return false;
+    	}
+    }
+    private LsProc mlsproc = new LsProc();
+    //ls>
     public FileTable(MainFrame mainFrame, FolderPanel folderPanel, FileTableConfiguration conf) {
         super(new FileTableModel(), new FileTableColumnModel(conf));
 
@@ -1446,21 +1469,8 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
 
     public void keyReleased(KeyEvent e) {
     	//<ls e.isControlDown() &&
-        if(  (e.getKeyCode() == KeyEvent.VK_PERIOD)){
-        	//int i = this.getSelectedRow();
-        	if( this.currentRow <=0)
-        		return;
-        	selectRow(this.currentRow-1);
-			//this.setRowSelectionInterval(i-1, i-1);
-			return;
-		}
-		else if(  (e.getKeyCode() == KeyEvent.VK_COMMA)){
-			//int i = this.getSelectedRow();
-        	if( this.currentRow > this.tableModel.getRowCount()-1)
-        		return;
-			this.selectRow(this.currentRow+1);
-			return;
-		}
+        if(mlsproc.onKeyReleased(e))
+        	return;
         //ls>
         // Discard keyReleased events while quick search is active
         if(quickSearch.isActive())

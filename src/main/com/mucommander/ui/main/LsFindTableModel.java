@@ -4,18 +4,34 @@ import java.util.ArrayList;
 
 import javax.swing.event.TableModelListener;
 
-public class MyTableModel implements javax.swing.table.TableModel{
+public class LsFindTableModel implements javax.swing.table.TableModel{
 
-	public ArrayList<String> flist;
+	public ArrayList<String> mfindlist;
 	
-	public MyTableModel()
+	public LsFindTableModel()
 	{
-		flist = null;
+		mfindlist = null;
+	}
+	
+	public String getCellstr( int row, int col){
+		String str = "";
+		if( col >= this.getColumnCount() || col < 0)
+			return str;
+		if( row >= this.getRowCount() || row < 0 )
+			return str;
+		
+		str = this.getValueAt(row, col).toString();
+		
+		return str;
+	}
+	public void removeRow(int row)
+	{
+		mfindlist.remove(row);
 	}
 	
     public int getRowCount(){
-    	if(flist!=null)
-    		return flist.size();
+    	if(mfindlist!=null)
+    		return mfindlist.size();
     	else
     		return 0;
     }
@@ -40,8 +56,8 @@ public class MyTableModel implements javax.swing.table.TableModel{
     }
 
     public Object getValueAt(int rowIndex, int columnIndex){
-    	if( flist !=null)
-    		return flist.get(rowIndex);
+    	if( mfindlist !=null)
+    		return mfindlist.get(rowIndex);
     	else
     		return "";
     	//return rowIndex+"--"+columnIndex;

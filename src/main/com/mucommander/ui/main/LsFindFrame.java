@@ -35,24 +35,23 @@ import com.mucommander.ui.main.toolbar.ToolBar;
 
 public class LsFindFrame extends JFrame implements MouseListener,KeyListener {
 
-	public JTable findtb;
-	public  MyTableModel findtm;
-	
-	public MainFrame mfrm;
+	public JTable mfindtable;
+	public LsFindTableModel mfindtablemodel;
 	
 	public LsFindFrame() 
 	{
-		mfrm = null;
 		// TODO Auto-generated constructor stub
 		init();
 	}
 	private void init() {
-    	   	
-        // Set the window icon
-        //setWindowIcon();
+	   	
+        initLayout();
 
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+    }
+	private void initLayout()
+	{
 		this.setSize(300, 400);
-        // Enable window resize
         setResizable(true);
 
         // The toolbar should have no inset, this is why it is left out of the insetsPane
@@ -66,100 +65,84 @@ public class LsFindFrame extends JFrame implements MouseListener,KeyListener {
                     return new Insets(0, 3, 3, 3);      // No top inset 
                 }
             };
-
-        // Below the toolbar there is the pane with insets
-        //contentPane.add(insetsPane, BorderLayout.CENTER);
-
-
-        findtb = new JTable();
-        findtb.addMouseListener(  this );
-        findtb.addKeyListener(this);
-        
-        findtm = new MyTableModel();
-        
-        findtb.setModel(findtm);
-        //findtm.flist = 
-        contentPane.add(findtb, BorderLayout.CENTER);
-        
+            
         // Add a 2-pixel gap between the file table and status bar
         YBoxPanel southPanel = new YBoxPanel();
         southPanel.addSpace(2);
 
-        // Perform CloseAction when the user asked the window to close
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        mfindtablemodel = new LsFindTableModel();        
+        mfindtable = new JTable();
+        mfindtable.addMouseListener(  this );
+        mfindtable.addKeyListener(this);
+        mfindtable.setModel(mfindtablemodel);
 
-        //ActionKeymap.registerActions(this);
-        //this.setVisible(true); 
-
-    }
-	
-// JTable findtble operation;	
-	public String getCellstr( int row, int col){
-		String str = "";
-		if( col >= findtb.getModel().getColumnCount() || col < 0)
-			return str;
-		if( row >= findtb.getModel().getRowCount() || row < 0 )
-			return str;
-		
-		str = findtb.getModel().getValueAt(row, col).toString();
-		
-		return str;
+        contentPane.add(mfindtable, BorderLayout.CENTER);    
 	}
+	
 	public void delPath(){
-		int row = findtb.getSelectedRow();
-		//System.out.println(row);
-		String str = getCellstr( row, 0);
-		LsFindTable ft = LsFindTable.lsfind;
-		if( ft == null)
-			return;
-		ft.DelPath(str);
+		int row = mfindtable.getSelectedRow();
+		String str = mfindtablemodel.getCellstr( row, 0);
 		
-		findtm.flist.remove(row);
-		//findtb.removeRowSelectionInterval(row, row);
-		row = row -1;
+		LsFastFoder.mthis.DelPath(str);		
+		mfindtablemodel.removeRow(row);
+		
+		selectRow( row -1 );
+		
+		mfindtable.updateUI();
+	}
+	public void GotoPath(){
+		int row = mfindtable.getSelectedRow();
+		String str =mfindtablemodel.getCellstr(row, 0); //= findtb.getModel().getValueAt(findtb.getSelectedRow(), 0).toString();
+		LsFastFoder.mthis.gotoPath(str);	
+	}
+	
+	private void selectRow(int row)
+	{
 		if( row < 0 ) 
 			row = 0;
-		if( row < findtb.getRowCount())
-			findtb.setRowSelectionInterval(row, row);
-		findtb.updateUI();
+		if( row < mfindtable.getRowCount())
+			mfindtable.setRowSelectionInterval(row, row);
 	}
-	public void GoPath(){
-		//int col = findtb.getModel().getColumnCount();
-		int row = findtb.getSelectedRow();
-		String str =getCellstr(row, 0); //= findtb.getModel().getValueAt(findtb.getSelectedRow(), 0).toString();
-		LsFindTable.lsfind.selstr = str;
-		//System.out.println("frame"+str);
-		if(mfrm!=null)
-		{
-			mfrm.getActivePanel().getLocationTextField().setText(str);
-			//mfrm.getRightPanel().getLocationTextField().setText(str);
-		}
+	private void gotoFirstRow()
+	{
+		gotoRow(mfindtable.getRowCount());
+	}
+	private void gotoEndRow()
+	{
+		gotoRow(-mfindtable.getRowCount());
+	}
+	private void gotoRow(int inc)
+	{
+		int i = mfindtable.getSelectedRow();
+		i = i+inc;
+        	if( i <0 )
+			i=mfindtable.getRowCount()-1;
+		else if(i>= mfindtable.getRowCount())
+			i = 0;
+		if( i < 0)
+			return;
+		mfindtable.setRowSelectionInterval(i, i);
 	}
 	public void keyPressed(KeyEvent e)
 	{
 		int kc = e.getKeyCode();
 		if ( (kc == KeyEvent.VK_ENTER) || (kc == KeyEvent.VK_G)) {
-			GoPath();
+			GotoPath();
 			this.dispose();
 		}
-		//else if( kc == KeyEvent.VK_G){
-		//	GoPath();
-		//	this.dispose();
-		//}
-        else if( (kc == KeyEvent.VK_I) || (kc ==KeyEvent.VK_J)){
-        	int i = findtb.getSelectedRow();
-        	if( i <=0)
-        		return;
-			findtb.setRowSelectionInterval(i-1, i-1);
+        else if( (kc == KeyEvent.VK_H) || (kc ==KeyEvent.VK_K)){
+        		gotoRow(-1);
 		}
-		else if( (kc == KeyEvent.VK_K)|| (kc ==KeyEvent.VK_L)){
-			int i = findtb.getSelectedRow();
-        	if( i > findtb.getRowCount()-1)
-        		return;
-			findtb.setRowSelectionInterval(i+1, i+1);
+		else if( (kc == KeyEvent.VK_J)|| (kc ==KeyEvent.VK_L)){
+			gotoRow(+1);
 		}
-		else if ( (kc == KeyEvent.VK_D) || (kc ==KeyEvent.VK_U)){
-			//findtb.remo
+		else if(  (kc ==KeyEvent.VK_U) ){
+			gotoFirstRow();
+		}
+		else if( (kc == KeyEvent.VK_O) ){
+			gotoEndRow();
+		}
+		else if ( (kc == KeyEvent.VK_D) ){
 			this.delPath();
 		}
 	}
@@ -172,7 +155,7 @@ public class LsFindFrame extends JFrame implements MouseListener,KeyListener {
 	public void mouseClicked(MouseEvent e){
 		if(e.getButton()==MouseEvent.BUTTON1){
 			if(e.getClickCount()==2){
-				GoPath();
+				GotoPath();
 				this.dispose();
 			}
 		}

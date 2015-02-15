@@ -35,7 +35,7 @@ import com.mucommander.conf.MuPreference;
 import com.mucommander.conf.MuPreferences;
 import com.mucommander.text.CustomDateFormat;
 import com.mucommander.text.SizeFormat;
-import com.mucommander.ui.main.LsFindTable;
+import com.mucommander.ui.main.LsFastFoder;
 
 
 /**
@@ -45,7 +45,153 @@ import com.mucommander.ui.main.LsFindTable;
  */
 public class FileTableModel extends AbstractTableModel {
 
-	private boolean isshowcur = false;
+	//<ls
+	class LsShowCurDir{
+		boolean misshowcurdir = false;
+		
+		synchronized void lsSetCurrentFolder(AbstractFile folder, AbstractFile children[])
+	    {
+	    	System.out.println("lssetcurrentfolder");
+	    	
+	    	LsFastFoder fastfoder = LsFastFoder.mthis;
+	    	if( fastfoder == null )
+	    		return;
+	    	
+	    	String fstr = fastfoder.mfindstr;
+	    	ArrayList<String> als = fastfoder.mfindproc.FindStr(fstr);
+	    	if( als.isEmpty())
+	    		return;
+	    	
+	    	int len = als.size();    	
+	    	
+	    	children = new AbstractFile[len];
+	    	
+	    	cachedFiles = children;    	
+	    	fileArrayIndex = new int[len];
+	    	for(int i=0;i <len;i++)
+	    	{
+	    		//cachedFiles[i].setName = "df";
+	    		fileArrayIndex[i]=i;
+	    	}
+	    	rowMarked = new boolean[len+(getFirstRow())];
+	        markedTotalSize = 0;
+	        nbRowsMarked = 0;
+	        
+	    	// Init and fill cell cache to speed up table even more
+	        cellValuesCache = new Object[len+(getFirstRow())][Column.values().length-1];       
+	        //if(parent!=null) {
+	        if( hasParentFolder()){
+	            cellValuesCache[0][Column.NAME.ordinal()-1] = "..";
+	            cellValuesCache[0][Column.SIZE.ordinal()-1] = DIRECTORY_SIZE_STRING;
+	            currentFolderDateSnapshot = currentFolder.getDate();
+	            cellValuesCache[0][Column.DATE.ordinal()-1] =	CustomDateFormat.format(new Date(currentFolderDateSnapshot));
+	            // Don't display parent's permissions as they can have a different format from the folder contents
+	            // (e.g. for archives) and this looks weird
+	            cellValuesCache[0][Column.PERMISSIONS.ordinal()-1] = "";
+	            cellValuesCache[0][Column.OWNER.ordinal()-1] = "";
+	            cellValuesCache[0][Column.GROUP.ordinal()-1] = "";
+	        }
+	        int idx = getFirstRow();//parent==null? 0: 1;
+	        String path;        
+	        for(int i = 0; i <als.size();i++)
+	        {
+	        		path = als.get(i);
+	        		//System.out.println(path);
+	        		cellValuesCache[idx][Column.NAME.ordinal()-1] = path;
+	                cellValuesCache[idx][Column.SIZE.ordinal()-1] = DIRECTORY_SIZE_STRING;
+	                cellValuesCache[idx][Column.DATE.ordinal()-1] =	CustomDateFormat.format(new Date(currentFolderDateSnapshot));
+	                // Don't display parent's permissions as they can have a different format from the folder contents
+	                // (e.g. for archives) and this looks weird
+	                cellValuesCache[idx][Column.PERMISSIONS.ordinal()-1] = "";
+	                cellValuesCache[idx][Column.OWNER.ordinal()-1] = "";
+	                cellValuesCache[idx][Column.GROUP.ordinal()-1] = "";
+	        		idx++;
+	        }
+	            	
+	    }
+		
+		public void fillCellCurdir()
+		{
+			// <ls-2013-04-01;
+	        if( this.misshowcurdir){
+	        	int ci = getCurdirRow();
+		        cellValuesCache[ci][Column.NAME.ordinal()-1] = ".";
+		        cellValuesCache[ci][Column.SIZE.ordinal()-1] = DIRECTORY_SIZE_STRING;
+		        currentFolderDateSnapshot = currentFolder.getDate(); 
+		        cellValuesCache[ci][Column.DATE.ordinal()-1] =	CustomDateFormat.format(new Date(currentFolderDateSnapshot));
+		        // Don't display parent's permissions as they can have a different format from the folder contents
+		        // (e.g. for archives) and this looks weird
+		        cellValuesCache[ci][Column.PERMISSIONS.ordinal()-1] = "";
+		        cellValuesCache[ci][Column.OWNER.ordinal()-1] = "";
+		        cellValuesCache[ci][Column.GROUP.ordinal()-1] = "";
+	        }
+	     // ls>
+		}
+		
+		// the fileArrayIndex not include parent and current dir row;
+		public int getRowCount()
+		{
+		    // <ls -2013-04-01;
+	        return fileArrayIndex.length + (getFirstRow());
+	        // ls>
+		}
+		
+		// <ls-2013-04-01;
+	    private boolean isParentdirRow( int rowIndex)
+	    {
+	    	if( (hasParentFolder()) && (rowIndex == 0))
+	    		return true;
+	    	else
+	    		return false;
+	    }
+	    private int getCurdirRow()
+	    {
+	    	if( !misshowcurdir )
+	    		return -1;
+	    	if(!hasParentFolder())
+	    	{
+	    		return 0;
+	    	}
+	    	else
+	    	{
+	    		return 1;
+	    	}
+	    }
+	    private boolean isCurdirRow( int rowIndex)
+	    {
+	    	if( !misshowcurdir )
+	    		return false;
+	    	
+	    	if(!hasParentFolder())
+	    	{
+	    		if( (rowIndex == 0))
+	    			return true;
+	    	}
+	    	else
+	    	{
+	    		if( (rowIndex == 1))
+	    			return true;
+	    	}
+	    	return false;
+	    }
+	    private int getRowRelativeToFirstRow(int rowIndex)
+	    {
+	     	//return  (parent==null?rowIndex:(rowIndex-1));
+	    	return rowIndex - getFirstRow();
+	    }
+		private int getFirstRow()
+		{
+			// the first row index, except parent, current;
+			//boolean cur = false;
+			int index = hasParentFolder()?1:0;
+			index += misshowcurdir ? 1:0;
+			return index; 
+		}
+		// ls>
+		
+	}
+	LsShowCurDir mshowcurdir = new LsShowCurDir();
+	//ls>
 	
     /** The current folder */
     private AbstractFile currentFolder;
@@ -174,7 +320,7 @@ public class FileTableModel extends AbstractTableModel {
      * @return the index of the first row that can be marked/unmarked
      */
     public int getFirstMarkableRow() {
-        return getFindex();
+        return mshowcurdir.getFirstRow();
     }
 
     /**
@@ -183,66 +329,6 @@ public class FileTableModel extends AbstractTableModel {
      * @param folder the current folder
      * @param children the current folder's children
      */
-    synchronized void lsSetCurrentFolder(AbstractFile folder, AbstractFile children[])
-    {
-    	System.out.println("lssetcurrentfolder");
-    	
-    	LsFindTable lsfind = LsFindTable.lsfind;
-    	if( lsfind == null )
-    		return;
-    	
-    	String fstr = lsfind.findstr;
-    	ArrayList<String> als = lsfind.FindStr(fstr);
-    	if( als.isEmpty())
-    		return;
-    	
-    	int len = als.size();    	
-    	
-    	children = new AbstractFile[len];
-    	
-    	this.cachedFiles = children;    	
-    	this.fileArrayIndex = new int[len];
-    	for(int i=0;i <len;i++)
-    	{
-    		//cachedFiles[i].setName = "df";
-    		fileArrayIndex[i]=i;
-    	}
-    	this.rowMarked = new boolean[len+(this.getFindex())];
-        this.markedTotalSize = 0;
-        this.nbRowsMarked = 0;
-        
-    	// Init and fill cell cache to speed up table even more
-        this.cellValuesCache = new Object[len+(this.getFindex())][Column.values().length-1];       
-        //if(this.parent!=null) {
-        if( this.hasParentFolder()){
-            cellValuesCache[0][Column.NAME.ordinal()-1] = "..";
-            cellValuesCache[0][Column.SIZE.ordinal()-1] = DIRECTORY_SIZE_STRING;
-            currentFolderDateSnapshot = currentFolder.getDate();
-            cellValuesCache[0][Column.DATE.ordinal()-1] =	CustomDateFormat.format(new Date(currentFolderDateSnapshot));
-            // Don't display parent's permissions as they can have a different format from the folder contents
-            // (e.g. for archives) and this looks weird
-            cellValuesCache[0][Column.PERMISSIONS.ordinal()-1] = "";
-            cellValuesCache[0][Column.OWNER.ordinal()-1] = "";
-            cellValuesCache[0][Column.GROUP.ordinal()-1] = "";
-        }
-        int idx = getFindex();//this.parent==null? 0: 1;
-        String path;        
-        for(int i = 0; i <als.size();i++)
-        {
-        		path = als.get(i);
-        		//System.out.println(path);
-        		cellValuesCache[idx][Column.NAME.ordinal()-1] = path;
-                cellValuesCache[idx][Column.SIZE.ordinal()-1] = DIRECTORY_SIZE_STRING;
-                cellValuesCache[idx][Column.DATE.ordinal()-1] =	CustomDateFormat.format(new Date(currentFolderDateSnapshot));
-                // Don't display parent's permissions as they can have a different format from the folder contents
-                // (e.g. for archives) and this looks weird
-                cellValuesCache[idx][Column.PERMISSIONS.ordinal()-1] = "";
-                cellValuesCache[idx][Column.OWNER.ordinal()-1] = "";
-                cellValuesCache[idx][Column.GROUP.ordinal()-1] = "";
-        		idx++;
-        }
-            	
-    }
     synchronized void setCurrentFolder(AbstractFile folder, AbstractFile children[]) {
     	
         int nbFiles = children.length;
@@ -322,27 +408,14 @@ public class FileTableModel extends AbstractTableModel {
             cellValuesCache[0][Column.OWNER.ordinal()-1] = "";
             cellValuesCache[0][Column.GROUP.ordinal()-1] = "";
         }
-      // <ls-2013-04-01;
-        if( this.isshowcur){
-        	int ci = this.getCrow();
-	        cellValuesCache[ci][Column.NAME.ordinal()-1] = ".";
-	        cellValuesCache[ci][Column.SIZE.ordinal()-1] = DIRECTORY_SIZE_STRING;
-	        currentFolderDateSnapshot = currentFolder.getDate(); 
-	        cellValuesCache[ci][Column.DATE.ordinal()-1] =	CustomDateFormat.format(new Date(currentFolderDateSnapshot));
-	        // Don't display parent's permissions as they can have a different format from the folder contents
-	        // (e.g. for archives) and this looks weird
-	        cellValuesCache[ci][Column.PERMISSIONS.ordinal()-1] = "";
-	        cellValuesCache[ci][Column.OWNER.ordinal()-1] = "";
-	        cellValuesCache[ci][Column.GROUP.ordinal()-1] = "";
-        }
-     // ls>
+        mshowcurdir.fillCellCurdir();
         
         AbstractFile file;
         int fileIndex = 0;
 
-        for(int i=getFindex(); i<len; i++) {
+        for(int i= mshowcurdir.getFirstRow(); i<len; i++) {
             file = getCachedFileAtRow(i);
-            int cellIndex = fileArrayIndex[fileIndex]+(getFindex());
+            int cellIndex = fileArrayIndex[fileIndex]+( mshowcurdir.getFirstRow());
             cellValuesCache[cellIndex][Column.NAME.ordinal()-1] = file.getName();
             cellValuesCache[cellIndex][Column.SIZE.ordinal()-1] = file.isDirectory()?DIRECTORY_SIZE_STRING:SizeFormat.format(file.getSize(), sizeFormat);
             cellValuesCache[cellIndex][Column.DATE.ordinal()-1] = CustomDateFormat.format(new Date(file.getDate()));
@@ -353,26 +426,17 @@ public class FileTableModel extends AbstractTableModel {
             fileIndex++;
         }
 
-        LsFindTable lsfind = LsFindTable.lsfind;
+        LsFastFoder lsfind = LsFastFoder.mthis;
         if( lsfind != null)
         {
 	        String path;
-	        fileIndex = 0;
-	        for(int i=getFindex(); i<len; i++) {
+	        for( int i = mshowcurdir.getFirstRow(); i < len; i++ ) {
 	            file = getCachedFileAtRow(i);
-	            //int cellIndex = fileArrayIndex[fileIndex]+(parent==null?0:1);
-	            //cellValuesCache[cellIndex][Column.NAME.ordinal()-1] = file.getName();
-	            //cellValuesCache[cellIndex][Column.SIZE.ordinal()-1] = file.isDirectory()?DIRECTORY_SIZE_STRING:SizeFormat.format(file.getSize(), sizeFormat);
-	
-	
 	        	if(file.isDirectory())
 	        	{
-	        		//System.out.print(file.getAbsolutePath());
 	        		path = file.getAbsolutePath() ;//+ file.getName();
 	        		lsfind.AddPath( path);
 	        	}
-	        	
-	            fileIndex++;
 	        }
         }
     }
@@ -390,14 +454,14 @@ public class FileTableModel extends AbstractTableModel {
      */
     public synchronized AbstractFile getCachedFileAtRow(int rowIndex) {
         //if(rowIndex==0 && parent!=null)
-    	if( this.isProw(rowIndex))
+    	if( mshowcurdir.isParentdirRow(rowIndex))
             return parent;
-    	if( this.isCrow(rowIndex))
+    	if( mshowcurdir.isCurdirRow(rowIndex))
     		return this.currentFolder;
 		
         //if(parent!=null)
         //    rowIndex--;
-    	rowIndex -= this.getFindex();
+    	rowIndex -= mshowcurdir.getFirstRow();
 		
         // Need to check that row index is not larger than actual number of rows
         // because if table has just been changed (rows have been removed),
@@ -477,7 +541,7 @@ public class FileTableModel extends AbstractTableModel {
 
         // Use dichotomic binary search rather than a dumb linear search since file array is sorted,
         // complexity is reduced to O(log n) instead of O(n^2)
-        int left = getFindex();
+        int left = mshowcurdir.getFirstRow();
         int right = getRowCount()-1;
         int mid;
         AbstractFile midFile;
@@ -535,13 +599,11 @@ public class FileTableModel extends AbstractTableModel {
      */
     public synchronized boolean isRowMarked(int row) {
         //if(row==0 && parent!=null)
-    	if( this.isProw(row))
+    	if( mshowcurdir.isParentdirRow(row) || mshowcurdir.isCurdirRow(row))
             return false;
-    	if( this.isCrow(row))
-    		return false;
 
         //return row<getRowCount() && rowMarked[fileArrayIndex[parent==null?row:row-1]];
-    	return row<getRowCount() && rowMarked[fileArrayIndex[this.getFibyRi(row)]];
+    	return row<getRowCount() && rowMarked[fileArrayIndex[mshowcurdir.getRowRelativeToFirstRow(row)]];
     }
 
 
@@ -554,12 +616,10 @@ public class FileTableModel extends AbstractTableModel {
      */
     public synchronized void setRowMarked(int row, boolean marked) {
         //if(row==0 && parent!=null)
-    	if( this.isProw(row))
+    	if( mshowcurdir.isParentdirRow(row) || mshowcurdir.isCurdirRow(row))
             return;
-    	if( this.isCrow(row))
-    		return;
 			
-        int rowIndex = this.getFibyRi(row);//row - this.getFindex();//parent==null?row:row-1;
+        int rowIndex = mshowcurdir.getRowRelativeToFirstRow(row);//row - this.getFindex();//parent==null?row:row-1;
 
         // Return if the row is already marked/unmarked
         if((marked && rowMarked[fileArrayIndex[rowIndex]]) || (!marked && !rowMarked[fileArrayIndex[rowIndex]]))
@@ -634,7 +694,7 @@ public class FileTableModel extends AbstractTableModel {
      */
     public synchronized void setFilesMarked(FileFilter filter, boolean marked) {
         int nbFiles = getRowCount();
-        for(int i=getFindex(); i<nbFiles; i++) {
+        for(int i=mshowcurdir.getFirstRow(); i<nbFiles; i++) {
             if(filter.match(getCachedFileAtRow(i)))
                 setRowMarked(i, marked);
         }
@@ -659,14 +719,14 @@ public class FileTableModel extends AbstractTableModel {
         //if(parent==null) {
         if( !this.hasParentFolder()){
             //for(int i=0; i<nbRows; i++) {
-        	for(int i=this.getFindex(); i<nbRows; i++) {
+        	for(int i=mshowcurdir.getFirstRow(); i<nbRows; i++) {
                 if(rowMarked[fileArrayIndex[i]])
                     markedFiles.add(getFileAtRow(i));
             }
         }
         else {
             //for(int i=1, iMinusOne=0; i<nbRows; i++) {
-        	for(int i=this.getFindex(), iMinusOne=0; i<nbRows; i++) {
+        	for(int i=mshowcurdir.getFirstRow(), iMinusOne=0; i<nbRows; i++) {
                 if(rowMarked[fileArrayIndex[iMinusOne]])
                     markedFiles.add(getFileAtRow(i));
 
@@ -805,9 +865,7 @@ public class FileTableModel extends AbstractTableModel {
      */
     public synchronized int getRowCount() {
         //return fileArrayIndex.length + (parent==null?0:1);
-    // <ls -2013-04-01;
-        return fileArrayIndex.length + (getFindex());
-    // ls>
+    	return mshowcurdir.getRowCount();
     }
 
 		
@@ -830,67 +888,15 @@ public class FileTableModel extends AbstractTableModel {
         columnIndex--;
         // Handle special '..' file
         //if(rowIndex==0 && parent!=null)
-        if( isProw(rowIndex))
+        if( mshowcurdir.isParentdirRow(rowIndex))
             return cellValuesCache[0][columnIndex];
-        if(this.isCrow(rowIndex))
-        	return cellValuesCache[this.getCrow()][columnIndex];
+        if(mshowcurdir.isCurdirRow(rowIndex))
+        	return cellValuesCache[mshowcurdir.getCurdirRow()][columnIndex];
 
-        int fileIndex = getFibyRi(rowIndex);//(parent==null?rowIndex:(rowIndex-1));
+        int fileIndex = mshowcurdir.getRowRelativeToFirstRow(rowIndex);//(parent==null?rowIndex:(rowIndex-1));
         ///System.out.println(fileIndex);
-        return cellValuesCache[fileArrayIndex[fileIndex]+(getFindex())][columnIndex];
-    }
-// <ls-2013-04-01;
-    private boolean isProw( int rowIndex)
-    {
-    	if( (this.hasParentFolder()) && (rowIndex == 0))
-    		return true;
-    	else
-    		return false;
-    }
-    private int getCrow()
-    {
-    	if( !isshowcur )
-    		return -1;
-    	if(!this.hasParentFolder())
-    	{
-    		return 0;
-    	}
-    	else
-    	{
-    		return 1;
-    	}
-    }
-    private boolean isCrow( int rowIndex)
-    {
-    	if( !isshowcur )
-    		return false;
-    	
-    	if(!this.hasParentFolder())
-    	{
-    		if( (rowIndex == 0))
-    			return true;
-    	}
-    	else
-    	{
-    		if( (rowIndex == 1))
-    			return true;
-    	}
-    	return false;
-    }
-    private int getFibyRi(int rowIndex)
-    {
-     	//return  (parent==null?rowIndex:(rowIndex-1));
-    	return rowIndex - getFindex();
-    }
-	private int getFindex()
-	{
-		// the first row index, except parent, current;
-		//boolean cur = false;
-		int fi = this.hasParentFolder()?1:0;
-		fi += isshowcur ? 1:0;
-		return fi; 
-	}
-// ls>	
+        return cellValuesCache[fileArrayIndex[fileIndex]+(mshowcurdir.getFirstRow())][columnIndex];
+    }	
 	
     /**
      * Returns <code>true</code> if name column has temporarily be made editable by FileTable
@@ -902,9 +908,9 @@ public class FileTableModel extends AbstractTableModel {
         // but parent file '..' name should never be editable
     	
 	//<ls	
-    	if( this.isProw(rowIndex))
+    	if( mshowcurdir.isParentdirRow(rowIndex))
     		return false;
-    	if( this.isCrow(rowIndex))
+    	if( mshowcurdir.isCurdirRow(rowIndex))
     		return false;
         
        	//if(Column.valueOf(columnIndex)==Column.NAME && (parent==null || rowIndex!=0))
