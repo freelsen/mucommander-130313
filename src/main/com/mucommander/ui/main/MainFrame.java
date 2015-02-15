@@ -463,6 +463,14 @@ public class MainFrame extends JFrame implements LocationListener {
      *
      * @param table the currently active FileTable
      */
+    public void changeActiveTable(){
+    	FolderPanel fp= this.getLeftPanel();
+    	if( fp == getActivePanel())
+    		fp = this.getRightPanel();
+    	FileTable ft = fp.getFileTable();
+    	this.setActiveTable(ft);
+	activeTable.requestFocus();
+    }
     void setActiveTable(FileTable table) {
         boolean activeTableChanged = activeTable !=table;
 

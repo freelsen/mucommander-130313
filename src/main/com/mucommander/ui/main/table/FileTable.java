@@ -20,6 +20,7 @@ package com.mucommander.ui.main.table;
 
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -27,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -186,7 +188,29 @@ public class FileTable extends JTable implements MouseListener, MouseMotionListe
     {
     	public boolean onKeyReleased(KeyEvent e)
     	{
-    		if(  (e.getKeyCode() == KeyEvent.VK_PERIOD)){
+		if( (e.getKeyCode() == KeyEvent.VK_SPACE)){
+			EventQueue.invokeLater(new Runnable() {
+  				 @Override
+     				public void run() {
+         				mainFrame.getActivePanel().getLocationTextField().grabFocus();
+         				mainFrame.getActivePanel().getLocationTextField().requestFocus();//or inWindow
+     				}
+			});
+			return true;
+		}
+		else if( e.isControlDown()
+    			&& ((e.getKeyCode() == KeyEvent.VK_PERIOD) ||
+			(e.getKeyCode() == KeyEvent.VK_COMMA)))
+    		{
+    			EventQueue.invokeLater(new Runnable() {
+     				 @Override
+        				public void run() {
+	     					mainFrame.changeActiveTable();
+        				}
+    			});
+    			return true;
+    		}
+		else if(  (e.getKeyCode() == KeyEvent.VK_PERIOD)){
     			if( currentRow > 0)
     				selectRow(currentRow-1);
     			else
