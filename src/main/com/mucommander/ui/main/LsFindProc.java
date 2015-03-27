@@ -83,11 +83,11 @@ public class LsFindProc {
 		//System.out.println(path);
 		
 		// 2013-03-18; if folder exist?
-		File file =new File(mpath);    
-		if(!file.exists() && !file.isDirectory())      
-		{
-			return "";
-		}  
+//		File file =new File(mpath);    
+//		if(!file.exists() && !file.isDirectory())      
+//		{
+//			return "";
+//		}  
 				
 		// get file name from path;
 		String name="";
