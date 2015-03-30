@@ -13,8 +13,8 @@ public class LsFindProc {
 	public ArrayList<String> mfindlist;
 	
 	private String mworkdir = "";//2013-10-20;-1120;
-	char mbackslash = '\\'; //@150330, '/'for mac; //'\\'; for win;
-	char mbackslashmac='/';
+	char mbackslash = '/'; //@150330, '/'for mac; //'\\'; for win;
+	String mbackslashstr="/";
 
 	LsFindProc()
 	{
@@ -69,6 +69,8 @@ public class LsFindProc {
 	}
 	private String getFolderName()
 	{
+		mpath = mpath.replaceAll("\\\\", "/");
+		//JOptionPane.showMessageDialog(null, "after "+mpath);
 		if(mpath.charAt(0) == mbackslash)				// 131020-1406;
 			mpath = mworkdir +mpath;
 		
