@@ -6,3 +6,4 @@ tmp
 tags
 *.bak
 *.swp
+src/**/*.class

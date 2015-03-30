@@ -13,6 +13,8 @@ public class LsFindProc {
 	public ArrayList<String> mfindlist;
 	
 	private String mworkdir = "";//2013-10-20;-1120;
+	char mbackslash = '\\'; //@150330, '/'for mac; //'\\'; for win;
+	char mbackslashmac='/';
 
 	LsFindProc()
 	{
@@ -67,12 +69,12 @@ public class LsFindProc {
 	}
 	private String getFolderName()
 	{
-		if(mpath.charAt(0) == '\\')				// 131020-1406;
+		if(mpath.charAt(0) == mbackslash)				// 131020-1406;
 			mpath = mworkdir +mpath;
 		
 		char c = mpath.charAt(mpath.length()-1);
 		//System.out.println(c);
-		if( c=='\\')
+		if( c==mbackslash)
 		{
 			//System.out.println(path);
 			mpath = mpath.substring(0,mpath.length()-1);
@@ -91,7 +93,7 @@ public class LsFindProc {
 				
 		// get file name from path;
 		String name="";
-		int p = mpath.lastIndexOf('\\');
+		int p = mpath.lastIndexOf(mbackslash);
 		if( p < 0 ) // =-1 not found;
 			return "";
 		else if (p >= mpath.length()-1)// no char after \;
