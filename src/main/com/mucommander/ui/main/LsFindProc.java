@@ -24,6 +24,7 @@ public class LsFindProc {
 	public void init()
 	{
 		mworkdir = this.getCurdir();
+		mworkdir = mworkdir.replaceAll("\\\\", "/");
 		addPath(mworkdir);
 	}
 	// 2013-10-20;-1124;
