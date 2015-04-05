@@ -16,15 +16,41 @@ public class LsFindProc {
 	char mbackslash = '/'; //@150330, '/'for mac; //'\\'; for win;
 	String mbackslashstr="/";
 
+	boolean mismac = false;
 	LsFindProc()
 	{
 		mfindmap = new HashMap<String,ArrayList<String>>();
 		mfindlist = new ArrayList<String>();	
 	}
+	String getStrOs(String str)
+	{
+		String s;
+		if(mismac )
+		{
+			s= str.replaceAll("\\\\","/");
+			mbackslash = '/';
+		}
+		else
+		{
+			s = str.replaceAll("/","\\\\");
+			mbackslash = '\\';
+		}
+		return s;
+	}
+	void checkOs()
+	{
+		String os = System.getProperty("os.name");
+		if(os.contains("Windows"))
+			mismac = false;//JOptionPane.showMessageDialog(null, os);
+		else
+			mismac = true;
+	}
 	public void init()
 	{
+		checkOs();
+		
 		mworkdir = this.getCurdir();
-		mworkdir = mworkdir.replaceAll("\\\\", "/");
+		mworkdir = getStrOs(mworkdir);//mworkdir.replaceAll("\\\\", "/");
 		addPath(mworkdir);
 	}
 	// 2013-10-20;-1124;
@@ -70,13 +96,14 @@ public class LsFindProc {
 	}
 	private String getFolderName()
 	{
-		mpath = mpath.replaceAll("\\\\", "/");
+		mpath = getStrOs(mpath);//mpath.replaceAll("\\\\", "/");
 		//JOptionPane.showMessageDialog(null, "after "+mpath);
+		//System.out.println(mpath);
 		if(mpath.charAt(0) == mbackslash)				// 131020-1406;
 			mpath = mworkdir +mpath;
 		
 		char c = mpath.charAt(mpath.length()-1);
-		//System.out.println(c);
+		//System.out.println(mpath);
 		if( c==mbackslash)
 		{
 			//System.out.println(path);
